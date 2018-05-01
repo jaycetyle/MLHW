@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import numpy
+import matplotlib.pyplot as plt
 
 workclass = ["Private", "Self-emp-not-inc", "Self-emp-inc",
     "Federal-gov", "Local-gov", "State-gov", "Without-pay", "Never-worked"]
@@ -28,6 +29,7 @@ native_country = ["United-States", "Cambodia", "England",
     "Guatemala", "Nicaragua", "Scotland", "Thailand", "Yugoslavia",
     "El-Salvador", "Trinadad&Tobago", "Peru", "Hong", "Holand-Netherlands"]
 
+
 def parse_data(data, table = None):
     if table is None:
         return [int(data)]
@@ -39,9 +41,10 @@ def parse_data(data, table = None):
     ret[index] = 1
     return ret
 
+
 def parse_train(file):
     X = []
-    Y = []
+    y = []
     for line in file:
         man = line.split(',')
         if len(man) < 15:
@@ -63,19 +66,70 @@ def parse_train(file):
         x.extend(parse_data(man[12]))
         x.extend(parse_data(man[13], native_country))
         if (man[14] == "<=50K"):
-            Y.append(0)
+            y.append(0)
         else:
-            Y.append(1)
+            y.append(1)
         X.append(x)
-    return Y, X
+    return numpy.array(y), numpy.array(X)
+
+
+def predict(X, w, b):
+    yp = 1.0 / (1.0 + numpy.exp(-(b + numpy.dot(X, w))))   # y* = sigmoid(z)
+    return numpy.clip(yp,0.00000000000001,0.99999999999999)
+
+
+def gradient(y, X, w, b):
+    yp = predict(X, w, b)
+    e = y - yp                          # e = y - y*
+    dw = -numpy.dot(X.transpose(), e)   # w = -X'e
+    db = -numpy.sum(e)
+    return dw, db
+
+
+def train(y, X, loops=1000, rate = 10**-4):
+    cnt = numpy.shape(y)[0]
+    w = numpy.zeros(numpy.shape(X)[1])
+    b = 0
+
+    sum_dw2 = sum_db2 = 0
+    err = []
+
+    for i in range(0, loops):
+        dw, db = gradient(y, X, w, b)
+        w = w - rate * dw
+        b = b - rate * db
+        if i % 100 == 0:
+            yp = predict(X, w, b)
+            loss = -(numpy.dot(y, numpy.log(yp)) + numpy.dot((1-y), numpy.log(1-yp)))
+            err.append(loss)
+            errate = numpy.sum(numpy.absolute(y - numpy.around(yp))) / float(cnt)
+            print("{0} err: {1:0.2%}, loss: {2}".format(i, errate, loss))
+    return w, b, err
+
+
+def save_model(file, w, b):
+    file.write('{0}\n'.format(b))
+    numpy.savetxt(file, w)
+
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: train.py <TRAIN_PATH>")
+    if len(sys.argv) != 3:
+        print("Usage: train.py <TRAIN_PATH> <MODEL_PATH>")
         return
 
     with open(sys.argv[1], encoding="big5") as file:
-        Y, X = parse_train(file)
+        y, X = parse_train(file)
+
+    max = numpy.clip(numpy.max(numpy.abs(X), axis=0),1,100000000)
+    X = X / max
+    w, b, loss = train(y, X, 50000)
+
+    plt.plot(loss)
+    plt.show()
+
+    with open(sys.argv[2], 'w') as file:
+        save_model(file, w, b)
+
 
 if __name__ == "__main__":
     try:
