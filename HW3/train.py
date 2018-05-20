@@ -3,8 +3,9 @@ import sys
 import numpy
 import keras
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Dropout, Flatten, BatchNormalization
+from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D
+from keras import regularizers
 
 IMG_ROWS = 48
 IMG_COLS = 48
@@ -12,7 +13,7 @@ INPUT_SHAPE = (IMG_ROWS, IMG_COLS, 1)
 
 BATCH_SIZE = 64
 NUM_CLASSES = 7
-EPOCHS = 128
+EPOCHS = 64
 
 def parse_train(file):
     file.readline() # skip header
@@ -46,21 +47,45 @@ def main():
     print("Create Model")
     model = Sequential()
 
-    model.add(Conv2D(8, padding='same', kernel_size=(3, 3), activation='relu', input_shape=INPUT_SHAPE))
+    model.add(Conv2D(16, padding='same', kernel_size=(3, 3), activation='relu', input_shape=INPUT_SHAPE))
+    model.add(BatchNormalization())
     model.add(Conv2D(16, padding='same', kernel_size=(3, 3), activation='relu'))
-    model.add(Conv2D(24, padding='same', kernel_size=(3, 3), activation='relu'))
+    model.add(BatchNormalization())
+
     model.add(Conv2D(32, padding='same', kernel_size=(3, 3), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Conv2D(32, padding='same', kernel_size=(3, 3), activation='relu'))
+    model.add(BatchNormalization())
+
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(64, padding='same', kernel_size=(3, 3), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Conv2D(64, padding='same', kernel_size=(3, 3), activation='relu'))
+    model.add(BatchNormalization())
+
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
     model.add(Conv2D(128, padding='same', kernel_size=(3, 3), activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Conv2D(128, padding='same', kernel_size=(3, 3), activation='relu'))
+    model.add(BatchNormalization())
+
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.25))
+
     model.add(Flatten())
 
     model.add(Dense(256, activation='relu'))
+    model.add(BatchNormalization())
     model.add(Dropout(0.5))
     model.add(Dense(512, activation='relu'))
+    model.add(BatchNormalization())
     model.add(Dropout(0.5))
     model.add(Dense(1024, activation='relu'))
+    model.add(BatchNormalization())
     model.add(Dropout(0.5))
     model.add(Dense(NUM_CLASSES, activation='softmax'))
 
