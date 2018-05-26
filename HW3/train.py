@@ -36,7 +36,7 @@ def parse_train(file):
 
 def main():
     if len(sys.argv) != 3:
-        print("Usage: train.py <TRAIN_PATH>")
+        print("Usage: train.py <TRAIN_PATH> <MODEL_PATH>")
         return
 
     print("Parsing taining data")
