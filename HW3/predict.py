@@ -11,7 +11,7 @@ sentiment = ["生氣", "厭惡", "恐懼", "高興", "難過", "驚訝", "無表
 
 def load_img(path):
     img = Image.open(path).convert('L')
-    img = img.resize((48, 48), Image.ANTIALIAS)
+    img = img.resize((IMG_ROWS, IMG_COLS), Image.ANTIALIAS)
     x = numpy.array(img)
     return x.reshape(1, IMG_ROWS, IMG_COLS, 1)
 
@@ -23,10 +23,7 @@ def main():
 
     input = load_img(sys.argv[2])
 
-    print("Load model")
     model = load_model(sys.argv[1])
-
-    print("Predict")
     label = model.predict_classes(input, verbose=0)
 
     print("ANS:", sys.argv[2], sentiment[label[0]])
