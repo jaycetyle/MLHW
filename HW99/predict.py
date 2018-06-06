@@ -18,8 +18,9 @@ def predict(model, file):
     img = img.resize((IMG_ROWS, IMG_COLS), Image.BILINEAR)
     x = numpy.array(img).reshape(1, IMG_ROWS, IMG_COLS, 1)
     label = model.predict_classes(x, verbose=0)
+    proba = model.predict_proba(x, verbose=0)
 
-    print("{0} 是 {1} 的".format(file, gender[label[0]]))
+    print("{0} 是 {1} 的 (女 {2:.2%}; 男 {3:.2%})".format(file, gender[label[0]], proba[0][0], proba[0][1]))
 
 def main():
     if len(sys.argv) != 3:

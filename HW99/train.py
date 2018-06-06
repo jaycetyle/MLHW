@@ -16,7 +16,7 @@ IMG_COLS = 64
 COLORS = 1
 INPUT_SHAPE = (IMG_ROWS, IMG_COLS, COLORS)
 
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 NUM_CLASSES = 2
 EPOCHS = 32
 
@@ -76,15 +76,13 @@ def main():
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
+    model.add(Dropout(0.2))
+
     model.add(Conv2D(16, padding='same', kernel_size=(3, 3), activation='relu'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Dropout(0.25))
-
-    model.add(Conv2D(32, padding='same', kernel_size=(3, 3), activation='relu'))
-    model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
 
     model.add(Conv2D(64, padding='same', kernel_size=(3, 3), activation='relu'))
     model.add(BatchNormalization())
@@ -102,14 +100,14 @@ def main():
                     optimizer=keras.optimizers.Adam(lr=0.005),
                     metrics=['accuracy'])
 
-    early_stop = EarlyStopping(monitor='val_acc', patience=4)
+    early_stop = EarlyStopping(monitor='val_acc', patience=3)
 
     model.fit(x, y,
             batch_size=BATCH_SIZE,
             epochs=EPOCHS,
             verbose=1,
             callbacks=[early_stop],
-            validation_split=0.25)
+            validation_split=0.3)
 
     model.save(sys.argv[2])
 
